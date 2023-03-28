@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+    jass-postgres:
+      image: postgres:14
+      restart: on-failure
+      environment:
+        - POSTGRES_DB=jass2023
+        - POSTGRES_USER=jass2023
+        - POSTGRES_PASSWORD=jass2023
+      ports:
+        - '5432:5432'
