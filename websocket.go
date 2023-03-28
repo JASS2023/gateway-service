@@ -69,17 +69,17 @@ func echoHandler(ws *websocket.Conn) {
                 break
             }
 			fmt.Println("Construction data id:", constraction.id)
-			var id int = constraction.id;
-			var startDateTime time.Time = constraction.startDateTime;
-			var endDateTime time.Time = constraction.endDateTime;
-			var maximumSpeed float64 = constraction.maximumSpeed;
-			var description string = constraction.description;
+			id = constraction.id;
+			startDateTime = constraction.startDateTime;
+			endDateTime = constraction.endDateTime;
+			maximumSpeed = constraction.maximumSpeed;
+			description = constraction.description;
 			db := ConnectDB()
 			for i := 0; i < len(constraction.coordinates); i++ {
-				var x int = constraction.coordinates[i].x;
-				var y int = constraction.coordinates[i].y;
-				var quadrant int = constraction.coordinates[i].quadrant;
-				err := db.Create(&Constraint{
+				x = constraction.coordinates[i].x;
+				y = constraction.coordinates[i].y;
+				quadrant = constraction.coordinates[i].quadrant;
+				constraint = &Constraint{
 					Type=1, 
 					Quadrant=quadrant, 
 					X=x, 
@@ -88,10 +88,17 @@ func echoHandler(ws *websocket.Conn) {
 					ExpiryDate = endDateTime, 
 					MaxSpeed = maximumSpeed, 
 					Description = "Construction Site", 
-					}).Error;
+					};
+				err := db.Create(constraint).Error;
 				if err != nil {
 					log.Error(err)
 				}
+				b, err := json.Marshal(constraint)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				fmt.Println(string(b))
 			}
 		case "plan_service":
 			log.Info("Received plan_service")
@@ -101,18 +108,18 @@ func echoHandler(ws *websocket.Conn) {
                 break
             }
 			fmt.Println("Time sensitive data id:", service.id)
-			var id int = service.id;
-			var startDateTime time.Time = service.startDateTime;
-			var endDateTime time.Time = service.endDateTime;
-			var maximumSpeed float64 = service.maximumSpeed;
-			var description string = service.description;
-			var startTime string = service.timeConstraints.start;
-			var endTime string = service.timeConstraints.end;
+			id = service.id;
+			startDateTime = service.startDateTime;
+			endDateTime = service.endDateTime;
+			maximumSpeed = service.maximumSpeed;
+			description = service.description;
+			startTime = service.timeConstraints.start;
+			endTime = service.timeConstraints.end;
 			db := ConnectDB()
 			for i := 0; i < len(service.coordinates); i++ {
-				var x int = service.coordinates[i].x;
-				var y int = service.coordinates[i].y;
-				var quadrant int = service.coordinates[i].quadrant;
+				x = service.coordinates[i].x;
+				y = service.coordinates[i].y;
+				quadrant = service.coordinates[i].quadrant;
 				err := db.Create(&Constraint{
 					Type=2, 
                     Quadrant=quadrant, 
@@ -128,6 +135,12 @@ func echoHandler(ws *websocket.Conn) {
                 if err!= nil {
 					log.Error(err)
 				}
+				b, err := json.Marshal(constraint)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				fmt.Println(string(b))
 			}
 		default:
 			log.Info("Received unknown message")
