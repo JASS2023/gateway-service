@@ -74,7 +74,6 @@ func echoHandler(ws *websocket.Conn) {
 			endDateTime = constraction.endDateTime;
 			maximumSpeed = constraction.maximumSpeed;
 			description = constraction.description;
-			db := ConnectDB()
 			for i := 0; i < len(constraction.coordinates); i++ {
 				x = constraction.coordinates[i].x;
 				y = constraction.coordinates[i].y;
@@ -89,7 +88,7 @@ func echoHandler(ws *websocket.Conn) {
 					MaxSpeed = maximumSpeed, 
 					Description = "Construction Site", 
 					};
-				err := db.Create(constraint).Error;
+				err := DB.Create(constraint).Error;
 				if err != nil {
 					log.Error(err)
 				}
@@ -115,12 +114,11 @@ func echoHandler(ws *websocket.Conn) {
 			description = service.description;
 			startTime = service.timeConstraints.start;
 			endTime = service.timeConstraints.end;
-			db := ConnectDB()
 			for i := 0; i < len(service.coordinates); i++ {
 				x = service.coordinates[i].x;
 				y = service.coordinates[i].y;
 				quadrant = service.coordinates[i].quadrant;
-				err := db.Create(&Constraint{
+				constraint = &Constraint{
 					Type=2, 
                     Quadrant=quadrant, 
                     X=x, 
@@ -131,7 +129,8 @@ func echoHandler(ws *websocket.Conn) {
 					StartTime = startTime, 
 					EndTime = endTime, 
                     Description = description, 
-                    }).Error;
+                    };
+				err := DB.Create(constraint).Error;
                 if err!= nil {
 					log.Error(err)
 				}

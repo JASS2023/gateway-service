@@ -25,7 +25,9 @@ type Constraint struct {
 	Description string `gorm:"default:'N/A'"`
 }
 
-func ConnectDB() *gorm.DB {
+var DB *gorm.DB
+
+func ConnectDB() error {
 	dsn := "host=localhost user=jass2023 password=jass2023 dbname=jass2023 port=5432 sslmode=disable"
 	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -38,5 +40,5 @@ func ConnectDB() *gorm.DB {
 	// Migrate the schema
 	gormDb.AutoMigrate(&Constraint{})
 
-	return gormDb
+	DB = gormDb
 }
