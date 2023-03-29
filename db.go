@@ -13,12 +13,12 @@ type Constraint struct {
 	// TODO is the ID really a integer or an UUID?
 	// TODO which geometry should we support for the coordinates?
 	gorm.Model
-	CityId      uuid.UUID `gorm: "type: uuid"`
+	CityId      uuid.UUID `gorm:"type: uuid;index:idx_name,unique"`
 	Type        uint
-	X           *float64  `gorm:"not null"`
-	Y           *float64  `gorm:"not null"`
-	X_Abs       *float64  `gorm:"not null"`
-	Y_Abs       *float64  `gorm:"not null"`
+	X           *float64  `gorm:"not null;index:idx_name,unique"`
+	Y           *float64  `gorm:"not null;index:idx_name,unique"`
+	X_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
+	Y_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
 	Light1      uuid.UUID `gorm:"type: uuid"`
 	Light2      uuid.UUID `gorm:"type: uuid"`
 	MaxSpeed    float64

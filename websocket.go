@@ -19,7 +19,7 @@ func echoHandler(ws *websocket.Conn) {
 		}
 		fmt.Println("Received message:", msg)
 
-		msgHandler(msg)
+		//msgHandler(msg)
 		// err = websocket.Message.Send(ws, msg)
 		// if err != nil {
 		// 	fmt.Println("Error sending message:", err.Error())
