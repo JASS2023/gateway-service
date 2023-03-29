@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -11,11 +12,15 @@ import (
 type Constraint struct {
 	// TODO is the ID really a integer or an UUID?
 	// TODO which geometry should we support for the coordinates?
-	ID          *uint `gorm:"primaryKey"`
+	gorm.Model
+	CityId      uuid.UUID `gorm: "type: uuid"`
 	Type        uint
-	Quadrant    string `gorm:"default: 1111"`
-	X           *uint  `gorm:"not null"`
-	Y           *uint  `gorm:"not null"`
+	X           *float64  `gorm:"not null"`
+	Y           *float64  `gorm:"not null"`
+	X_Abs       *float64  `gorm:"not null"`
+	Y_Abs       *float64  `gorm:"not null"`
+	Light1      uuid.UUID `gorm:"type: uuid"`
+	Light2      uuid.UUID `gorm:"type: uuid"`
 	MaxSpeed    float64
 	Days        string    `gorm:"default:'1111111'"`
 	StartTime   string    `gorm:"default:'00:00:00'"`

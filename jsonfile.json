@@ -1,0 +1,27 @@
+{
+    "type": "plan_construction_site",
+    "data": {
+         "id": 1,
+         "coordinates": [
+            { 
+                "x": 1.2,
+                "y": 1.3,
+                "x_abs": 3.5,
+                "y_abs": 3.4
+            },
+            { 
+                "x": 1.9,
+                "y": 2.1,
+                "x_abs": 3.8,
+                "y_abs": 3.9
+            }
+        ],
+        "startDateTime": "2023-01-01 00:00:00",
+        "endDateTime": "2023-09-01 00:00:00",
+        "maximumSpeed": 20.0,
+        "traffic_lights": {
+            "id1": 3,
+            "id2": 4
+        }
+    }
+}
