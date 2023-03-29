@@ -11,11 +11,11 @@ import (
 type Constraint struct {
 	// TODO is the ID really a integer or an UUID?
 	// TODO which geometry should we support for the coordinates?
-	gorm.Model
+	ID          *uint `gorm:"primaryKey"`
 	Type        uint
-	Quadrant    uint  `gorm:"not null"`
-	X           *uint `gorm:"not null"`
-	Y           *uint `gorm:"not null"`
+	Quadrant    string `gorm:"default: 1111"`
+	X           *uint  `gorm:"not null"`
+	Y           *uint  `gorm:"not null"`
 	MaxSpeed    float64
 	Days        string    `gorm:"default:'1111111'"`
 	StartTime   string    `gorm:"default:'00:00:00'"`
@@ -25,7 +25,9 @@ type Constraint struct {
 	Description string `gorm:"default:'N/A'"`
 }
 
-func ConnectDB() *gorm.DB {
+var DB *gorm.DB
+
+func ConnectDB() error {
 	dsn := "host=localhost user=jass2023 password=jass2023 dbname=jass2023 port=5432 sslmode=disable"
 	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -38,5 +40,7 @@ func ConnectDB() *gorm.DB {
 	// Migrate the schema
 	gormDb.AutoMigrate(&Constraint{})
 
-	return gormDb
+	DB = gormDb
+
+	return nil
 }
