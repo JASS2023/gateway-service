@@ -81,7 +81,8 @@ func handle_construction_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 	if err != nil {
 		log.WithError(err).Error("error in mqtt handle construction plan")
 	}
-	publish_construction(client, *id)
+	publish_construction(client, *id, false)
+	go startConstraint(client, *id, 1)
 }
 
 func handle_service_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
@@ -96,7 +97,8 @@ func handle_service_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 		log.WithError(err).Error("error in mqtt handle construction plan")
 	}
 
-	publish_service(client, *id)
+	publish_service(client, *id, false)
+	go startConstraint(client, *id, 2)
 }
 
 // func handle_duckie_status(client mqtt.Client, msg mqtt.Message) {
@@ -113,18 +115,18 @@ func handle_service_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 // 	log.Infof("%s", msg.Payload())
 // }
 
-func publish_construction(client mqtt.Client, id uuid.UUID) {
-	topic := fmt.Sprintf("construction/%s/plan", id)
-	payload, err := statusConstruction(id, false)
+func publish_construction(client mqtt.Client, id uuid.UUID, finished bool) {
+	topic := fmt.Sprintf("construction/%s/status", id)
+	payload, err := statusConstruction(id, finished)
 	if err != nil {
 		log.WithError(err).Error("error in mqtt publish construction")
 	}
 	client.Publish(topic, EXACTLY_ONCE, true, payload)
 }
 
-func publish_service(client mqtt.Client, id uuid.UUID) {
-	topic := fmt.Sprintf("service/%s/plan", id)
-	payload, err := statusService(id, false)
+func publish_service(client mqtt.Client, id uuid.UUID, finished bool) {
+	topic := fmt.Sprintf("service/%s/status", id)
+	payload, err := statusService(id, finished)
 	if err != nil {
 		log.WithError(err).Error("error in mqtt publish service")
 	}
