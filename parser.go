@@ -55,15 +55,6 @@ func msgHandler(msg Message) (id *uuid.UUID, err error) {
 	return id, nil
 }
 
-func contains(s []uint, e uint) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
 func planService(service map[string]interface{}) (*uuid.UUID, error) {
 	id, err := uuid.Parse(service["id"].(string))
 	if err != nil {
@@ -250,6 +241,14 @@ func statusConstruction(id uuid.UUID, finished bool) (string, error) {
 		c.Y = data[i].Y
 		c.X_abs = data[i].X_Abs
 		c.Y_abs = data[i].Y_Abs
+		var quatr []uint
+		str := data[i].Quadrants
+		for j := 0; j < len(str); j++ {
+			if str[j] == '1' {
+				quatr = append(quatr, uint(j))
+			}
+		}
+		c.Quadrants = quatr
 		cd.Coordinates = append(cd.Coordinates, c)
 	}
 	cd.StartDateTime = data[0].IssueDate
@@ -300,6 +299,14 @@ func statusService(id uuid.UUID, finished bool) (string, error) {
 		c.Y = data[i].Y
 		c.X_abs = data[i].X_Abs
 		c.Y_abs = data[i].Y_Abs
+		var quatr []uint
+		str := data[i].Quadrants
+		for j := 0; j < len(str); j++ {
+			if str[j] == '1' {
+				quatr = append(quatr, uint(j))
+			}
+		}
+		c.Quadrants = quatr
 		cd.Coordinates = append(cd.Coordinates, c)
 	}
 	cd.StartDateTime = data[0].IssueDate
