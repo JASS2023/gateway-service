@@ -75,12 +75,12 @@ func handle_construction_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 	var msg Message
 	json.Unmarshal(mqtt_msg.Payload(), &msg)
 	log.Infof("%+v", msg)
+
+	time.Sleep(10 * time.Second)
 	id, err := msgHandler(msg)
 	if err != nil {
 		log.WithError(err).Error("error in mqtt handle construction plan")
 	}
-
-	time.Sleep(10 * time.Second)
 	publish_construction(client, *id)
 }
 
@@ -89,13 +89,13 @@ func handle_service_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 
 	var msg Message
 	json.Unmarshal(mqtt_msg.Payload(), &msg)
+
+	time.Sleep(10 * time.Second)
 	id, err := msgHandler(msg)
 	if err != nil {
 		log.WithError(err).Error("error in mqtt handle construction plan")
 	}
 
-	// Simulate the placement of a service
-	time.Sleep(10 * time.Second)
 	publish_service(client, *id)
 }
 
