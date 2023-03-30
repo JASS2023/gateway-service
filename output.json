@@ -1,0 +1,1 @@
+{"type":"status_service","data":{"message":"built_service","id":"273b62ad-a99d-48be-8d80-ccc55ef688b5","coordinates":[{"x":1.2,"y":1.3,"x_abs":3.5,"y_abs":3.4},{"x":1.9,"y":2.1,"x_abs":3.8,"y_abs":3.9}],"startDateTime":"2006-01-02T17:04:05+02:00","endDateTime":"2016-09-30T18:04:05+03:00","maximumSpeed":20,"days":"1100110","time_constraints":{"start":"09:00:00","end":"12:00:00"}}}

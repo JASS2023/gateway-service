@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,10 +13,14 @@ type Constraint struct {
 	// TODO is the ID really a integer or an UUID?
 	// TODO which geometry should we support for the coordinates?
 	gorm.Model
+	CityId      uuid.UUID `gorm:"type: uuid;index:idx_name,unique"`
 	Type        uint
-	Quadrant    uint  `gorm:"not null"`
-	X           *uint `gorm:"not null"`
-	Y           *uint `gorm:"not null"`
+	X           *float64  `gorm:"not null;index:idx_name,unique"`
+	Y           *float64  `gorm:"not null;index:idx_name,unique"`
+	X_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
+	Y_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
+	Light1      uuid.UUID `gorm:"type: uuid"`
+	Light2      uuid.UUID `gorm:"type: uuid"`
 	MaxSpeed    float64
 	Days        string    `gorm:"default:'1111111'"`
 	StartTime   string    `gorm:"default:'00:00:00'"`
@@ -25,7 +30,9 @@ type Constraint struct {
 	Description string `gorm:"default:'N/A'"`
 }
 
-func ConnectDB() *gorm.DB {
+var DB *gorm.DB
+
+func ConnectDB() error {
 	dsn := "host=localhost user=jass2023 password=jass2023 dbname=jass2023 port=5432 sslmode=disable"
 	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -38,5 +45,7 @@ func ConnectDB() *gorm.DB {
 	// Migrate the schema
 	gormDb.AutoMigrate(&Constraint{})
 
-	return gormDb
+	DB = gormDb
+
+	return nil
 }

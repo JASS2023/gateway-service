@@ -1,0 +1,28 @@
+{
+    "type": "plan_service",
+    "data": {
+         "id": "273b62ad-a99d-48be-8d80-ccc55ef688b5",
+         "coordinates": [
+            { 
+                "x": 1.2,
+                "y": 1.3,
+                "x_abs": 3.5,
+                "y_abs": 3.4
+            },
+            { 
+                "x": 1.9,
+                "y": 2.1,
+                "x_abs": 3.8,
+                "y_abs": 3.9
+            }
+        ],
+        "startDateTime": "2006-01-02T15:04:05Z",
+        "endDateTime": "2016-09-30T15:04:05Z",
+        "maximumSpeed": 20.0,
+        "days": "1100110",
+        "time_constraints": {
+            "start": "09:00:00",
+            "end": "12:00:00"
+        }
+    }
+}
