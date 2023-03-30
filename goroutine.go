@@ -7,7 +7,7 @@ import (
 
 func startConstraint(c Constraint) error {
 	if c.IssueDate.Before(time.Now()) {
-		return errors.New("constraint has already expired yet")
+		return errors.New("constraint has already expired")
 	}
 	if c.Type == 1 {
 		statusConstruction(c.CityId, false)
