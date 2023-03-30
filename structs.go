@@ -16,6 +16,7 @@ type Coordinates struct {
 	Y     *float64 `json:"y"`
 	X_abs *float64 `json:"x_abs"`
 	Y_abs *float64 `json:"y_abs"`
+	Quadrants []uint `json:"quadrants"`
 }
 
 type TrafficLights struct {

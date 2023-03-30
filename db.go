@@ -19,6 +19,7 @@ type Constraint struct {
 	Y           *float64  `gorm:"not null;index:idx_name,unique"`
 	X_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
 	Y_Abs       *float64  `gorm:"not null;index:idx_name,unique"`
+	Quadrants 	string   `gorm:"not null;index:idx_name,unique"`
 	Light1      uuid.UUID `gorm:"type: uuid"`
 	Light2      uuid.UUID `gorm:"type: uuid"`
 	MaxSpeed    float64

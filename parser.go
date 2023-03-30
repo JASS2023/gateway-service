@@ -18,7 +18,7 @@ func msgHandler(msg Message) (id *uuid.UUID, err error) {
 		construction, ok := msg.Data.(map[string]interface{})
 		coordinates := construction["coordinates"].([]interface{})
 		if len(coordinates) == 0 {
-			return nil, errors.New("No coordinates found in plan_construction_site")
+			return nil, errors.New("no coordinates found in plan_construction_site")
 		}
 		if !ok {
 			str := fmt.Sprintf("Invalid construction data: %#v", msg.Data)
@@ -36,7 +36,7 @@ func msgHandler(msg Message) (id *uuid.UUID, err error) {
 		service, ok := msg.Data.(map[string]interface{})
 		coordinates := service["coordinates"].([]interface{})
 		if len(coordinates) == 0 {
-			return nil, errors.New("No coordinates found in plan_service")
+			return nil, errors.New("no coordinates found in plan_service")
 		}
 		if !ok {
 			str := fmt.Sprintf("Invalid time sensitive data: %#v", msg.Data)
@@ -55,6 +55,15 @@ func msgHandler(msg Message) (id *uuid.UUID, err error) {
 	return id, nil
 }
 
+func contains(s []uint, e uint) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func planService(service map[string]interface{}) (*uuid.UUID, error) {
 	id, err := uuid.Parse(service["id"].(string))
 	if err != nil {
@@ -70,24 +79,24 @@ func planService(service map[string]interface{}) (*uuid.UUID, error) {
 	}
 	maximumSpeed, ok := service["maximumSpeed"].(float64)
 	if !ok {
-		return nil, errors.New("Invalid maximum speed")
+		return nil, errors.New("invalid maximum speed")
 	}
 	days, ok := service["days"].(string)
 	if !ok || len(days) != 7 {
-		return nil, errors.New("Invalid days")
+		return nil, errors.New("invalid days")
 	}
-	timeConstraints := service["time_constraints"].(interface{})
+	timeConstraints := service["time_constraints"]
 	timeConstraints1, ok := timeConstraints.(map[string]interface{})
 	if !ok {
-		return nil, errors.New("Invalid time constraints")
+		return nil, errors.New("invalid time constraints")
 	}
 	start, ok := timeConstraints1["start"].(string)
 	if !ok {
-		return nil, errors.New("Invalid time constraints")
+		return nil, errors.New("invalid time constraints")
 	}
 	end, ok := timeConstraints1["end"].(string)
 	if !ok {
-		return nil, errors.New("Invalid time constraints")
+		return nil, errors.New("invalid time constraints")
 	}
 	coordinates := service["coordinates"].([]interface{})
 
@@ -95,12 +104,19 @@ func planService(service map[string]interface{}) (*uuid.UUID, error) {
 		log.Info(coordinates[i])
 		coord, ok := coordinates[i].(map[string]interface{})
 		if !ok {
-			return nil, errors.New("Error parsing coordinates")
+			return nil, errors.New("error parsing coordinates")
 		}
 		x := coord["x"].(float64)
 		y := coord["y"].(float64)
 		x_abs := coord["x_abs"].(float64)
 		y_abs := coord["y_abs"].(float64)
+		quadrants := coord["quadrants"].([]interface{})
+
+		s1 := "0000"
+		for j := 0; j < len(quadrants); j++ {
+			q := int(quadrants[j].(float64))
+			s1 = s1[:q-1] + "1" + s1[q:]
+		}
 		var newIssueDate, newExpiryDate time.Time
 		if time.Now().Before(endDateTime) {
 			newIssueDate = time.Now()
@@ -113,6 +129,7 @@ func planService(service map[string]interface{}) (*uuid.UUID, error) {
 			Y:           &y,
 			X_Abs:       &x_abs,
 			Y_Abs:       &y_abs,
+			Quadrants:   s1,
 			Days:        days,
 			IssueDate:   newIssueDate,
 			ExpiryDate:  newExpiryDate,
@@ -121,7 +138,6 @@ func planService(service map[string]interface{}) (*uuid.UUID, error) {
 			EndTime:     end,
 			Description: "Service",
 		}
-		//go startConstraint(*constraint) //start counting time
 		err := DB.Create(constraint).Error
 		if err != nil {
 			log.Error(err)
@@ -146,9 +162,9 @@ func planConstructionSite(construction map[string]interface{}) (*uuid.UUID, erro
 	}
 	maximumSpeed, ok := construction["maximumSpeed"].(float64)
 	if !ok {
-		return nil, errors.New("Invalid maximum speed")
+		return nil, errors.New("invalid maximum speed")
 	}
-	traffic := construction["traffic_lights"].(interface{})
+	traffic := construction["traffic_lights"]
 	traffic1, ok := traffic.(map[string]interface{})
 	if !ok {
 		return nil, errors.New("error parsing construction data")
@@ -168,12 +184,19 @@ func planConstructionSite(construction map[string]interface{}) (*uuid.UUID, erro
 		log.Info(coordinates[i])
 		coord, ok := coordinates[i].(map[string]interface{})
 		if !ok {
-			return nil, errors.New("Error parsing coordinates")
+			return nil, errors.New("error parsing coordinates")
 		}
 		x := coord["x"].(float64)
 		y := coord["y"].(float64)
 		x_abs := coord["x_abs"].(float64)
 		y_abs := coord["y_abs"].(float64)
+		quadrants := coord["quadrants"].([]interface{})
+
+		s1 := "0000"
+		for j := 0; j < len(quadrants); j++ {
+			q := int(quadrants[j].(float64))
+			s1 = s1[:q-1] + "1" + s1[q:]
+		}
 		var newIssueDate, newExpiryDate time.Time
 		if time.Now().Before(endDateTime) {
 			newIssueDate = time.Now()
@@ -186,6 +209,7 @@ func planConstructionSite(construction map[string]interface{}) (*uuid.UUID, erro
 			Y:           &y,
 			X_Abs:       &x_abs,
 			Y_Abs:       &y_abs,
+			Quadrants:   s1,
 			IssueDate:   newIssueDate,
 			ExpiryDate:  newExpiryDate,
 			MaxSpeed:    maximumSpeed,
@@ -193,7 +217,6 @@ func planConstructionSite(construction map[string]interface{}) (*uuid.UUID, erro
 			Light1:      light1,
 			Light2:      light2,
 		}
-		//go startConstraint(*constraint) //start counting time
 		err := DB.Create(constraint).Error
 		if err != nil {
 			log.Error(err)
@@ -243,6 +266,10 @@ func statusConstruction(id uuid.UUID, finished bool) (string, error) {
 		typ, cd,
 	}
 	output, err := json.Marshal(msg)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
 	os.WriteFile("output.json", output, 0644)
 	str := fmt.Sprintf("%v", output)
 	log.Info(str)
@@ -290,6 +317,10 @@ func statusService(id uuid.UUID, finished bool) (string, error) {
 		typ, cd,
 	}
 	output, err := json.Marshal(msg)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
 	os.WriteFile("output.json", output, 0644)
 	str := fmt.Sprintf("%v", output)
 	log.Info(str)
