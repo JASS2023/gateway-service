@@ -101,8 +101,11 @@ func planService(service map[string]interface{}) error {
 		y := coord["y"].(float64)
 		x_abs := coord["x_abs"].(float64)
 		y_abs := coord["y_abs"].(float64)
-		newIssueDate := time.Now()
-		newExpiryDate := endDateTime.Add((newIssueDate.Sub(startDateTime)))
+		var newIssueDate, newExpiryDate time.Time
+		if time.Now().Before(endDateTime) {
+			newIssueDate = time.Now()
+			newExpiryDate = endDateTime.Add((newIssueDate.Sub(startDateTime)))
+		}
 		constraint := &Constraint{
 			CityId:      id,
 			Type:        2,
@@ -171,8 +174,11 @@ func planConstructionSite(construction map[string]interface{}) error {
 		y := coord["y"].(float64)
 		x_abs := coord["x_abs"].(float64)
 		y_abs := coord["y_abs"].(float64)
-		newIssueDate := time.Now()
-		newExpiryDate := endDateTime.Add((newIssueDate.Sub(startDateTime)))
+		var newIssueDate, newExpiryDate time.Time
+		if time.Now().Before(endDateTime) {
+			newIssueDate = time.Now()
+			newExpiryDate = endDateTime.Add((newIssueDate.Sub(startDateTime)))
+		}
 		constraint := &Constraint{
 			CityId:      id,
 			Type:        1,
