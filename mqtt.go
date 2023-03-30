@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -52,8 +53,8 @@ func InitMQTTClient() {
 	MQTTClient.Subscribe("construction/+/plan", EXACTLY_ONCE, handle_construction_plan)
 	MQTTClient.Subscribe("service/+/plan", EXACTLY_ONCE, handle_service_plan)
 	// Duckie information
-	MQTTClient.Subscribe("duckie/+/status", EXACTLY_ONCE, handle_duckie_status)
-	MQTTClient.Subscribe("obstruction/+/status", EXACTLY_ONCE, handle_obstacle_status)
+	// MQTTClient.Subscribe("duckie/+/status", EXACTLY_ONCE, handle_duckie_status)
+	// MQTTClient.Subscribe("obstruction/+/status", EXACTLY_ONCE, handle_obstacle_status)
 
 	log.Info("MQTT client initialized")
 
@@ -68,49 +69,64 @@ func InitMQTTClient() {
 	fmt.Println("shutdown complete")
 }
 
-func handle_construction_plan(client mqtt.Client, msg mqtt.Message) {
+func handle_construction_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 	log.Info("construction plan received")
-	// TODO - handle construction planning and store it in the database
-	log.Infof("%s", msg.Topic())
-	log.Infof("%s", msg.Payload())
+
+	var msg Message
+	json.Unmarshal(mqtt_msg.Payload(), &msg)
+	log.Infof("%+v", msg)
+	id, err := msgHandler(msg)
+	if err != nil {
+		log.WithError(err).Error("error in mqtt handle construction plan")
+	}
 
 	time.Sleep(10 * time.Second)
-	publish_construction(client, uuid.New())
+	publish_construction(client, *id)
 }
 
-func handle_service_plan(client mqtt.Client, msg mqtt.Message) {
+func handle_service_plan(client mqtt.Client, mqtt_msg mqtt.Message) {
 	log.Info("service plan received")
-	// TODO - handle construction planning and store it in the database
-	log.Infof("%s", msg.Topic())
-	log.Infof("%s", msg.Payload())
+
+	var msg Message
+	json.Unmarshal(mqtt_msg.Payload(), &msg)
+	id, err := msgHandler(msg)
+	if err != nil {
+		log.WithError(err).Error("error in mqtt handle construction plan")
+	}
 
 	// Simulate the placement of a service
 	time.Sleep(10 * time.Second)
-	publish_service(client, uuid.New())
+	publish_service(client, *id)
 }
 
-func handle_duckie_status(client mqtt.Client, msg mqtt.Message) {
-	log.Info("duckie status received")
-	// TODO - handle construction planning and store it in the database
-	log.Infof("%s", msg.Topic())
-	log.Infof("%s", msg.Payload())
-}
+// func handle_duckie_status(client mqtt.Client, msg mqtt.Message) {
+// 	log.Info("duckie status received")
+// 	// TODO - handle construction planning and store it in the database
+// 	log.Infof("%s", msg.Topic())
+// 	log.Infof("%s", msg.Payload())
+// }
 
-func handle_obstacle_status(client mqtt.Client, msg mqtt.Message) {
-	log.Info("obstacle status received")
-	// TODO - handle construction planning and store it in the database
-	log.Infof("%s", msg.Topic())
-	log.Infof("%s", msg.Payload())
-}
+// func handle_obstacle_status(client mqtt.Client, msg mqtt.Message) {
+// 	log.Info("obstacle status received")
+// 	// TODO - handle construction planning and store it in the database
+// 	log.Infof("%s", msg.Topic())
+// 	log.Infof("%s", msg.Payload())
+// }
 
 func publish_construction(client mqtt.Client, id uuid.UUID) {
 	topic := fmt.Sprintf("construction/%s/plan", id)
-	// TODO add JSON payload
-	client.Publish(topic, EXACTLY_ONCE, true, "test")
+	payload, err := statusConstruction(id, false)
+	if err != nil {
+		log.WithError(err).Error("error in mqtt publish construction")
+	}
+	client.Publish(topic, EXACTLY_ONCE, true, payload)
 }
 
 func publish_service(client mqtt.Client, id uuid.UUID) {
 	topic := fmt.Sprintf("service/%s/plan", id)
-	// TODO add JSON payload
-	client.Publish(topic, EXACTLY_ONCE, true, "test")
+	payload, err := statusService(id, false)
+	if err != nil {
+		log.WithError(err).Error("error in mqtt publish service")
+	}
+	client.Publish(topic, EXACTLY_ONCE, true, payload)
 }

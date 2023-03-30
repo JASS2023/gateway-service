@@ -11,83 +11,83 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func msgHandler(msg Message) error {
+func msgHandler(msg Message) (id *uuid.UUID, err error) {
 	switch msg.Type {
 	case "plan_construction_site":
 		log.Info("Received plan_construction_site")
 		construction, ok := msg.Data.(map[string]interface{})
 		coordinates := construction["coordinates"].([]interface{})
 		if len(coordinates) == 0 {
-			return errors.New("No coordinates found in plan_construction_site")
+			return nil, errors.New("No coordinates found in plan_construction_site")
 		}
 		if !ok {
 			str := fmt.Sprintf("Invalid construction data: %#v", msg.Data)
 			log.Info(str)
 			fmt.Println("Error parsing construction data")
-			return errors.New("error parsing construction data")
+			return nil, errors.New("error parsing construction data")
 		}
-		err := planConstructionSite(construction)
+		id, err = planConstructionSite(construction)
 		if err != nil {
 			log.Error(err)
-			return err
+			return nil, err
 		}
 	case "plan_service":
 		log.Info("Received plan_service")
 		service, ok := msg.Data.(map[string]interface{})
 		coordinates := service["coordinates"].([]interface{})
 		if len(coordinates) == 0 {
-			return errors.New("No coordinates found in plan_service")
+			return nil, errors.New("No coordinates found in plan_service")
 		}
 		if !ok {
 			str := fmt.Sprintf("Invalid time sensitive data: %#v", msg.Data)
 			log.Info(str)
 			fmt.Println("Error parsing time sensitive data")
-			return errors.New("error parsing time sensitive data")
+			return nil, errors.New("error parsing time sensitive data")
 		}
-		err := planService(service)
+		id, err = planService(service)
 		if err != nil {
 			log.Error(err)
-			return err
+			return nil, err
 		}
 	default:
 		log.Info("Received unknown message")
 	}
-	return nil
+	return id, nil
 }
 
-func planService(service map[string]interface{}) error {
+func planService(service map[string]interface{}) (*uuid.UUID, error) {
 	id, err := uuid.Parse(service["id"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	startDateTime, err := time.Parse(time.RFC3339, service["startDateTime"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	endDateTime, err := time.Parse(time.RFC3339, service["endDateTime"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	maximumSpeed, ok := service["maximumSpeed"].(float64)
 	if !ok {
-		return errors.New("Invalid maximum speed")
+		return nil, errors.New("Invalid maximum speed")
 	}
 	days, ok := service["days"].(string)
 	if !ok || len(days) != 7 {
-		return errors.New("Invalid days")
+		return nil, errors.New("Invalid days")
 	}
 	timeConstraints := service["time_constraints"].(interface{})
 	timeConstraints1, ok := timeConstraints.(map[string]interface{})
 	if !ok {
-		return errors.New("Invalid time constraints")
+		return nil, errors.New("Invalid time constraints")
 	}
 	start, ok := timeConstraints1["start"].(string)
 	if !ok {
-		return errors.New("Invalid time constraints")
+		return nil, errors.New("Invalid time constraints")
 	}
 	end, ok := timeConstraints1["end"].(string)
 	if !ok {
-		return errors.New("Invalid time constraints")
+		return nil, errors.New("Invalid time constraints")
 	}
 	coordinates := service["coordinates"].([]interface{})
 
@@ -95,7 +95,7 @@ func planService(service map[string]interface{}) error {
 		log.Info(coordinates[i])
 		coord, ok := coordinates[i].(map[string]interface{})
 		if !ok {
-			return errors.New("Error parsing coordinates")
+			return nil, errors.New("Error parsing coordinates")
 		}
 		x := coord["x"].(float64)
 		y := coord["y"].(float64)
@@ -125,41 +125,41 @@ func planService(service map[string]interface{}) error {
 		err := DB.Create(constraint).Error
 		if err != nil {
 			log.Error(err)
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return &id, nil
 }
 
-func planConstructionSite(construction map[string]interface{}) error {
+func planConstructionSite(construction map[string]interface{}) (*uuid.UUID, error) {
 	id, err := uuid.Parse(construction["id"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	startDateTime, err := time.Parse(time.RFC3339, construction["startDateTime"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	endDateTime, err := time.Parse(time.RFC3339, construction["endDateTime"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	maximumSpeed, ok := construction["maximumSpeed"].(float64)
 	if !ok {
-		return errors.New("Invalid maximum speed")
+		return nil, errors.New("Invalid maximum speed")
 	}
 	traffic := construction["traffic_lights"].(interface{})
 	traffic1, ok := traffic.(map[string]interface{})
 	if !ok {
-		return errors.New("error parsing construction data")
+		return nil, errors.New("error parsing construction data")
 	}
 	light1, err := uuid.Parse(traffic1["id1"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	light2, err := uuid.Parse(traffic1["id2"].(string))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	coordinates := construction["coordinates"].([]interface{})
@@ -168,7 +168,7 @@ func planConstructionSite(construction map[string]interface{}) error {
 		log.Info(coordinates[i])
 		coord, ok := coordinates[i].(map[string]interface{})
 		if !ok {
-			return errors.New("Error parsing coordinates")
+			return nil, errors.New("Error parsing coordinates")
 		}
 		x := coord["x"].(float64)
 		y := coord["y"].(float64)
@@ -197,10 +197,10 @@ func planConstructionSite(construction map[string]interface{}) error {
 		err := DB.Create(constraint).Error
 		if err != nil {
 			log.Error(err)
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return &id, nil
 }
 
 func statusConstruction(id uuid.UUID, finished bool) (string, error) {
@@ -244,8 +244,8 @@ func statusConstruction(id uuid.UUID, finished bool) (string, error) {
 	}
 	output, err := json.Marshal(msg)
 	os.WriteFile("output.json", output, 0644)
-	str := fmt.Sprintf("%v", data)
-	log.Info(output)
+	str := fmt.Sprintf("%v", output)
+	log.Info(str)
 	return str, nil
 }
 
@@ -291,7 +291,7 @@ func statusService(id uuid.UUID, finished bool) (string, error) {
 	}
 	output, err := json.Marshal(msg)
 	os.WriteFile("output.json", output, 0644)
-	str := fmt.Sprintf("%v", data)
-	log.Info(output)
+	str := fmt.Sprintf("%v", output)
+	log.Info(str)
 	return str, nil
 }
