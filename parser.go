@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +44,7 @@ func msgHandler(msg Message) error {
 			fmt.Println("Error parsing time sensitive data")
 			return errors.New("error parsing time sensitive data")
 		}
-		err := planConstructionSite(service)
+		err := planService(service)
 		if err != nil {
 			log.Error(err)
 			return err
@@ -69,10 +71,6 @@ func planService(service map[string]interface{}) error {
 	maximumSpeed, ok := service["maximumSpeed"].(float64)
 	if !ok {
 		return errors.New("Invalid maximum speed")
-	}
-	description, ok := service["description"].(string)
-	if !ok {
-		return errors.New("Invalid description")
 	}
 	days, ok := service["days"].(string)
 	if !ok || len(days) != 7 {
@@ -105,7 +103,7 @@ func planService(service map[string]interface{}) error {
 		y_abs := coord["y_abs"].(float64)
 		constraint := &Constraint{
 			CityId:      id,
-			Type:        1,
+			Type:        2,
 			X:           &x,
 			Y:           &y,
 			X_Abs:       &x_abs,
@@ -116,7 +114,7 @@ func planService(service map[string]interface{}) error {
 			MaxSpeed:    maximumSpeed,
 			StartTime:   start,
 			EndTime:     end,
-			Description: description,
+			Description: "Service",
 		}
 
 		err := DB.Create(constraint).Error
@@ -193,4 +191,97 @@ func planConstructionSite(construction map[string]interface{}) error {
 		}
 	}
 	return nil
+}
+
+func statusConstruction(id uuid.UUID, finished bool) (string, error) {
+	var data []Constraint
+	err := DB.Where("city_id =? AND type=?", id, 1).Find(&data).Error
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	typ := "status_construction_site"
+	var cd ConstructionData
+	var message string
+	if finished {
+		message = "removed_construction_site"
+	} else {
+		message = "built_construction_site"
+	}
+	cd.Message = message
+	cd.Id = id
+	cd.Id = id
+	for i := 0; i < len(data); i++ {
+		var c Coordinates
+		c.X = data[i].X
+		c.Y = data[i].Y
+		c.X_abs = data[i].X_Abs
+		c.Y_abs = data[i].Y_Abs
+		cd.Coordinates = append(cd.Coordinates, c)
+	}
+	cd.StartDateTime = data[0].IssueDate
+	cd.EndDateTime = data[0].ExpiryDate
+	cd.MaximumSpeed = data[0].MaxSpeed
+	var tl TrafficLights
+	tl.Id1 = data[0].Light1
+	tl.Id2 = data[0].Light2
+	cd.Trafficlights = tl
+	msg := struct {
+		Type string           `json:"type"`
+		Data ConstructionData `json:"data"`
+	}{
+		typ, cd,
+	}
+	output, err := json.Marshal(msg)
+	os.WriteFile("output.json", output, 0644)
+	str := fmt.Sprintf("%v", data)
+	log.Info(output)
+	return str, nil
+}
+
+func statusService(id uuid.UUID, finished bool) (string, error) {
+	var data []Constraint
+	err := DB.Where("city_id =? AND type=?", id, 2).Find(&data).Error
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	typ := "status_service"
+	var cd TimeSensitiveData
+	var message string
+	if finished {
+		message = "removed_service"
+	} else {
+		message = "built_service"
+	}
+	cd.Message = message
+	cd.Id = id
+	cd.Id = id
+	for i := 0; i < len(data); i++ {
+		var c Coordinates
+		c.X = data[i].X
+		c.Y = data[i].Y
+		c.X_abs = data[i].X_Abs
+		c.Y_abs = data[i].Y_Abs
+		cd.Coordinates = append(cd.Coordinates, c)
+	}
+	cd.StartDateTime = data[0].IssueDate
+	cd.EndDateTime = data[0].ExpiryDate
+	cd.MaximumSpeed = data[0].MaxSpeed
+	cd.Days = data[0].Days
+	var tl TimeConstr
+	tl.Start = data[0].StartTime
+	tl.End = data[0].EndTime
+	cd.TimeConstraints = tl
+	msg := struct {
+		Type string            `json:"type"`
+		Data TimeSensitiveData `json:"data"`
+	}{
+		typ, cd,
+	}
+	output, err := json.Marshal(msg)
+	os.WriteFile("output.json", output, 0644)
+	str := fmt.Sprintf("%v", data)
+	log.Info(output)
+	return str, nil
 }

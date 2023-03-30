@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,13 +18,15 @@ func main() {
 
 	//InitMQTTClient()
 	ConnectDB()
-	dat, err := os.ReadFile("jsonfile.json")
+	dat, err := os.ReadFile("jsonfile1.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 	var msg Message
 	json.Unmarshal(dat, &msg)
 	msgHandler(msg)
+	input, err := uuid.Parse("273b62ad-a99d-48be-8d80-ccc55ef688b5")
+	statusService(input, false)
 
 	// err := db.Create(&Constraint{StartTime: "01:00:00"}).Error
 	// if err != nil {
