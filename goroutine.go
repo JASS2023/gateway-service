@@ -1,27 +1,18 @@
 package main
 
 import (
-	"errors"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/google/uuid"
 )
 
-func startConstraint(c Constraint) error {
-	if c.IssueDate.Before(time.Now()) {
-		return errors.New("constraint has already expired")
+func startConstraint(client mqtt.Client, id uuid.UUID, typ int) {
+	time.Sleep(time.Duration(15))
+	if typ == 1 {
+		publish_construction(client, id, true)
 	}
-	if c.Type == 1 {
-		statusConstruction(c.CityId, false)
+	if typ == 2 {
+		publish_service(client, id, true)
 	}
-	if c.Type == 2 {
-		statusService(c.CityId, false)
-	}
-	duration := c.ExpiryDate.Sub(c.IssueDate)
-	time.Sleep(time.Duration(duration.Seconds()))
-	if c.Type == 1 {
-		statusConstruction(c.CityId, true)
-	}
-	if c.Type == 2 {
-		statusService(c.CityId, true)
-	}
-	return nil
 }

@@ -7,17 +7,23 @@
                 "x": 1.2,
                 "y": 1.3,
                 "x_abs": 3.5,
-                "y_abs": 3.4
+                "y_abs": 3.4,
+                "quadrants": [
+                    1, 4
+                ]
             },
             { 
                 "x": 1.9,
                 "y": 2.1,
                 "x_abs": 3.8,
-                "y_abs": 3.9
+                "y_abs": 3.9,
+                "quadrants": [
+                    1, 4
+                ]
             }
         ],
-        "startDateTime": "2006-01-02T15:04:05Z",
-        "endDateTime": "2016-09-30T15:04:05Z",
+        "startDateTime": "2023-01-02T15:04:05Z",
+        "endDateTime": "2023-09-30T15:04:05Z",
         "maximumSpeed": 20.0,
         "days": "1100110",
         "time_constraints": {
